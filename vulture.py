@@ -209,36 +209,59 @@ def drawSVG(svg_attributes, attributes, paths):
     out = ''
     svgWidth = 0
     svgHeight = 0
+    viewportHeight = 0
+    viewportWidth = 0
+
+    # Alert user if there are no height and width tags in the file
+
+    if 'width' not in svg_attributes.keys():
+        print("No width/height attributes found. Make sure the svg dimensions are defined in mm or in (not px/pt/pc)")
+        exit()
+
+    # Detect Viewbox dimensions if defined
 
     if 'viewBox' in svg_attributes.keys():
         if svg_attributes['viewBox'].split()[2] != '0':
-            svgWidth = str(
+            viewportWidth = str(
                 round(float(svg_attributes['viewBox'].split()[2]), 2))
-            svgHeight = str(
+            viewportHeight = str(
                 round(float(svg_attributes['viewBox'].split()[3]), 2))
-        else:
-            svgWidth = svg_attributes['width']
-            svgHeight = svg_attributes['height']
-    else:
+
         svgWidth = svg_attributes['width']
         svgHeight = svg_attributes['height']
 
-    specifiedWidth = svgWidth
-    if 'mm' in specifiedWidth:
-        specifiedWidth = float(specifiedWidth.replace('mm', ''))
-        SCALE = specifiedWidth / float(svgWidth)
+    # Convert dimensions to the proper units
+
+    if 'mm' in svgWidth:
+        svgWidth = float(svgWidth.replace('mm', ''))
+        svgHeight = float(svgHeight.replace('mm', ''))
+        viewportWidth = float(viewportWidth)
+        viewportHeight = float(viewportHeight)
         if args.verbose:
             print("SVG width detected in mm \\o/")
-    elif 'in' in specifiedWidth:
-        specifiedWidth = float(specifiedWidth.replace('in', '')) * 25.4
-        SCALE = specifiedWidth / float(svgWidth)
+    elif 'cm' in svgWidth:
+        svgWidth = float(svgWidth.replace('cm', '')) * 10
+        svgHeight = float(svgHeight.replace('cm', '')) * 10
+        viewportWidth = float(viewportWidth) * 10
+        viewportHeight = float(viewportHeight) * 10
+        if args.verbose:
+            print("SVG width detected in cm")        
+    elif 'in' in svgWidth:
+        svgWidth = float(svgWidth.replace('in', '')) * 25.4
+        svgHeight = float(svgHeight.replace('in', '')) * 25.4
+        viewportWidth = float(viewportWidth) * 25.4
+        viewportHeight = float(viewportHeight) * 25.4
         if args.verbose:
             print("SVG width detected in inches")
     else:
-        SCALE = (args.scaleFactor * 25.4) / 150
-        if args.verbose:
-            print("SVG width not found, guessing based on scale factor")
+        print("SVG height/width not found. Possibly defined in illegal units?")
+        exit()
 
+    # Calculate scale factor (multiply by user-defined scale factor)
+    if viewportWidth != 0:
+        SCALE = (svgWidth / viewportWidth) * args.scaleFactor
+    else:
+        SCALE = 1 * args.scaleFactor
 
     exportHeight = float(svgHeight) * SCALE
 
@@ -257,7 +280,6 @@ def drawSVG(svg_attributes, attributes, paths):
             " (layer \"F.Cu\")" + \
             " (tedit \"" + hex(int(time.time()))[2:-1].upper() + "\")\n" + \
             " (attr virtual)\n"
-
 
     if len(paths) == 0:
         print("No paths found. Did you use 'Object to path' in Inkscape?")
@@ -737,10 +759,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='SparkFun Buzzard Label Generator')
 
-    parser.add_argument('imageFile', help='Path to target image file')
+    parser.add_argument('imageFile', help='Path to target image file (.svg)')
 
-    parser.add_argument('-s', dest='scaleFactor', default=0.04,
-                        type=float, help='Text Height in inches (same as EAGLE text size value)')
+    parser.add_argument('-s', dest='scaleFactor', default=1,
+                        type=float, help='Factor by which to scale the size of the imported image (default: 1)')
 
     parser.add_argument('-l', dest='eagleLayerNumber', default=21,
                         type=int, help='Layer in EAGLE to create label into (default is tPlace layer 21)')
@@ -754,8 +776,8 @@ if __name__ == '__main__':
     parser.add_argument('-n', dest='signalName', default='GND',
                         help='Signal name for polygon. Required if layer is not 21 (default is \'GND\')')
     
-    parser.add_argument('-u', dest='subSampling', default=0.1,
-                        type=float, help='Subsampling Rate (larger values provide smoother curves with more points)')  
+    parser.add_argument('-u', dest='subSampling', default=5,
+                        type=float, help='Subsampling Rate, if the imported image is "jagged" try a larger number here (larger values provide smoother curves with more points. default: 5)')  
 
     parser.add_argument('-t', dest='traceWidth', default=0.01,
                         type=float, help='Trace width in mm') 

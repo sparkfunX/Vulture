@@ -1,116 +1,99 @@
-# SparkFun Buzzard Label Generator
+# SparkFun Vulture SVG Import Tool
 
-If you're looking for legacy buzzard, it is still live at [github.io](https://sparkfunx.github.io/Buzzard/) and the source can be found in the `gh-pages` branch of this repo. Below is the documentation for `Buzzard.py`. For extensive legacy documentation, see the wiki.
+The Vulture Tool is designed to process vector graphics files into device footprints for EAGLE or KiCAD. 
 
-  #### NEW! KiCad Support!
-  
-  Thanks to [Gregory Davill](https://github.com/gregdavill), Buzzard now generates tags in KiCad footprint format via the `-o ki` argument.
+## Preparing Vector Graphics for Vulture
 
+Most vector graphics files are not compatible with Vulture "out-of-the-box" but they can be pre-processed quickly and easily. We 
+recommend using the free, open-source software [Inkscape](https://inkscape.org/) although any vector graphics editor should work
+fine. Below, we've outlined a basic protocol for pre-processing vector image files in Inkscape.
 
-  <hr>
+### Step 1) Open your image file in Inkscape
 
-  ## Installation:
-  
-  - Windows: open folder where you download and extracted Buzzard (Buzzard-master), hold **Shift** and **right-click** on that folder and from context menu select **"Open PowerShell Window Here"**. When the window is open, type: **"pip install -r requirements.txt"** and press Enter.
-  
-  ## Usage of _makeLabelGUI_: 
-  
-  1) copy **_makeLabelGUI.ULP_** to the Eagle example folder (recommended), or somewhere else, so you can call it via command line or you can assign shortcut for it (**Option -> Assign**). You can also  leave it at same folder as **buzzard.py** .
-  2) call or open ULP script (id there is not config file, pop up window will show up) and in **Settings** set path to **buzzard.py** script and **select folder and file name** for generating labels. _Optional:_ You can also add address to your managed library, if you have some. You can obtain it by right-click on it and select "Copy URN". 
-  3) select options which you want to save between sessions, write your label and click OK
+Open the InkScape software and then open your vector image
 
-  #### FAQ and tips
-  - script does not work if you will have **"@"** in your file path 
-  - saving to managed library does not work properly (I need to solve this)
-  - you **can not** generate label with **spaces!** 
-  
-  <hr>
+![opening an image in inkscape](/documentation/pp1.PNG)
+
+### Step 2) Flatten and convert all shapes to paths
+
+Vulture can only "see" paths, so we need to make sure that every shape in the document is defined as a path. 
+
+Select All objects (press Ctrl + A) and then run `Path>Object to Path` (press Shift+Ctrl+C)
+
+![highlighting object to path tool](/documentation/pp2.PNG)
+
+You may need to repeat this a few times to catch all objects in the document. There's no harm in doing it 3 or 4 times just in case.
+
+### Step 3) Ensure all paths have fill/stroke
+
+Any paths that don't have a defined fill and/or stroke color will be ignored by the Vulture tool. In most cases, you'll want all paths 
+to be visible to Vulture. Start by selecting all paths again (Ctrl + A) and run `Object>Fill and Stroke` (Shift + Ctrl + F)
+
+![highlighting the fill and stroke tool](/documentation/pp3.PNG)
+
+![highlighting solid color fill option](/documentation/pp4.PNG)
+
+![highlighting no paint stroke option](/documentation/pp5.PNG)
+
+### Step 4) Set drawing units to real units (mm/cm/in)
+
+The Vulture tool is designed to import vector images at 1:1 scale. In order to do that, we require images to have absolute units such as cm/mm/inch. 
+Millimeters are the native unit for Vulture but inches and centimeters are converted. Open the Document Properties dialog (Shift + Ctrl + D) 
+
+![highlighting document properties option](/documentation/pp6.PNG)
+
+Find the `Display Units` and `Units` fields and set them to your preferred units
+
+![highlighting units fields in document properties](/documentation/pp7.PNG)
+
+### Step 5) Save as a Plain .SVG file
+
+Save your pre-processed image file as "Plain SVG" format to ensure that all of the expected attribute tags are present.
+
+![highlighting Plain SVG in the Save As dialog](/documentation/pp8.PNG)
+
+Your file should now be ready to convert using Vulture.
 
 ```
-usage: buzzard.py [-h] [-f FONTNAME] [-s SCALEFACTOR] [-l EAGLELAYERNUMBER]
-                  [-v] [-o {b,ls,lib}] [-n SIGNALNAME] [-u SUBSAMPLING]
-                  [-t TRACEWIDTH] [-a {tl,cl,bl,tc,cc,bc,tr,cr,br}]
-                  labelText
+usage: vulture.py [-h] [-s SCALEFACTOR] [-l EAGLELAYERNUMBER] [-v]
+                  [-o {b,ls,lib,ki,ki5}] [-n SIGNALNAME] [-u SUBSAMPLING]
+                  [-t TRACEWIDTH] [-a {tl,cl,bl,tc,cc,bc,tr,cr,br}] [-w {w,a}]
+                  [-d DESTINATION] [-stdout]
+                  imageFile
+
+SparkFun Buzzard Label Generator
 
 positional arguments:
-  labelText             Text to write on the label
+  imageFile             Path to target image file (.svg)
 
 optional arguments:
   -h, --help            show this help message and exit
-  -f FONTNAME           Typeface to use when rendering the label
-  -s SCALEFACTOR        Text Height in inches (same as EAGLE text size value)
+  -s SCALEFACTOR        Factor by which to scale the size of the imported
+                        image (default: 1)
   -l EAGLELAYERNUMBER   Layer in EAGLE to create label into (default is tPlace
                         layer 21)
   -v                    Verbose mode (helpful for debugging)
-  -o {b,ls,lib,ki}         Output Mode ('b'=board script, 'ls'=EAGLE library script,
-                        'lib'=EAGLE library file, 'ki'=KiCad footprint)
+  -o {b,ls,lib,ki,ki5}  Output Mode ('b'=board script, 'ls'=library script,
+                        'lib'=library file, 'ki'=KiCad v6 footprint,
+                        'ki5'=KiCad v5 footprint)
   -n SIGNALNAME         Signal name for polygon. Required if layer is not 21
                         (default is 'GND')
-  -u SUBSAMPLING        Subsampling Rate (larger values provide smoother curves 
-                        with more points)
+  -u SUBSAMPLING        Subsampling Rate, if the imported image is "jagged"
+                        try a larger number here (larger values provide
+                        smoother curves with more points. default: 5)
   -t TRACEWIDTH         Trace width in mm
   -a {tl,cl,bl,tc,cc,bc,tr,cr,br}
                         Footprint anchor position (default:cl)
   -w {w,a}              Output writing mode (default:w)
   -d DESTINATION        Output destination filename (extension depends on -o
                         flag)
-  -c                    If specified labelText is used as a path to collection
-                        script (a text list of labels and options to create)    
-  -stdout               If specified output is written to stdout
+  -stdout               If Specified output is written to stdout
 
-  ```
-  
-  ## labelText
-  
-  Label text should be enclosed in doublequotes in order to pass certain characters via the commandline. 
-  **Note:** If you're using Windows PowerShell you may need to escape certain characters using the "`" (backward apostrophe/grave)
-  
-  ### Tag Shapes
-  
-  By default, Buzzard.py will output plain text labels. If you want to make a flag label, you can surround your text with the following
-  special characters: `()[]/\><`
-  
-  For example: 
-  ```
-  (capsule)
-  /forward-slash/
-  \back-slash\
-  >flagtail-pointer>
-  [square]
-  ```
-  
-  These tag shape indicators can be mixed and matched as well, i.e. `(half-capsule]`
-  
-  ### Multiple Tags
-  
-  When using the `-o lib` output format, multiple comma-separated tags can be generated. If you need multiple tags with individual
-  formatting, try [collections mode](https://github.com/sparkfunX/Buzzard/tree/python#generate-collections)! 
-  
-  ### Overlining 
-  
-  Buzzard.py supports using "!" to overline tags in the same way that EAGLE does. For the most predictable results, overlined text 
-  should be surrounded by exclamation marks, i.e. in EAGLE, "!INT" will produce overlined text, but it is best practice to write "!INT!"
-  instead.
-  
-  ### Literal Exclamation Marks
-  
-  If you want to use the literal "!" character in your tag, it should be escaped with a leading backslash, i.e. "\\!"
-  
-  ### Literal Backslashes
-  
-  If you want to use the literal "\\" character in your tag, it should be escaped with a leading backslash, i.e. "\\\\"
-  A backslash in the first position of a tag string will always be interpreted as a tag shape indicator.
-  
-  ## FONTNAME
-  
-  Buzzard.py will attempt to use any TrueType font in the `/typeface` directory, but because buzzard cannot read the GPOS tables, 
-  it requires character offsets to be explicitly defined in an eponymous python module. Modules currently exist only for the included
-  typefaces "Roboto" and "FredokaOne". If a module doesn't exist, but the font is present, buzzard will attempt to generate the tag
-  without position information. 
-  
+```
+
   ## SCALEFACTOR
   
-  This argument controls the output size of the tag. Units are height of text in inches. The default is 0.04".
+  This argument controls the output size of the image. This is a `float` by which the dimensions of the image are multiplied
   
   ## EAGLELAYERNUMBER
   
@@ -134,11 +117,11 @@ optional arguments:
   
   ### Library Package Mode
   
-  Library package mode will generate a file called `output.lbr` which is an EAGLE library file containing the specified tag/tags
+  Library package mode will generate a file called `output.lbr` which is an EAGLE library file containing the specified image/images
 
   ### KiCad Footprint Mode
 
-  KiCad footprint mode will generate a file called 'output.kicad_mod' which is a KiCad footprint file containing the specified tag
+  KiCad footprint mode will generate a file called 'output.kicad_mod' which is a KiCad footprint file containing the specified image
   
   ## SIGNALNAME
   
@@ -146,8 +129,8 @@ optional arguments:
   
   ## SUBSAMPLING
   
-  This argument essentially defines the resolution of the output. A smaller number will produce smoother curves but larger files. 
-  **Note:**  Smaller scale factors require smaller subsampling factors
+  This argument essentially defines the resolution of the output. A larger number will produce smoother curves but larger files. 
+  **Note:**  If your output image looks "jagged" or "low-res" then try a larger number here
   
   ## TRACEWIDTH
 
@@ -179,12 +162,6 @@ optional arguments:
   
   Using the `-d` flag will allow you to specify the name of the output file. The file extension will automatically be selected based on
   the output format.
-  
-  ## Generate Collections
-  
-  Passing the `-c` flag will run buzzard.py in collection mode. Instead of passing a comma-separated collection of strings, you may pass 
-  the path to a text file containing the strings that you wish to generate. In collection mode, each tag can be generated with its own
-  properties. An example collection.txt may be found in the ./tests/ directory
 
   ## STDOUT Print Mode
 
