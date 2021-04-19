@@ -19,9 +19,11 @@ First you'll need to either clone the software repo or download it as a zip file
 
 To find your extensions folder, open Inkscape and access the `Preferences` menu (Shift+Ctrl+P)
 
-![opening the inkscape preferences menu](/documentation/ints1.png)
+![opening the inkscape preferences menu](/documentation/inst1.png)
 
 And then, in the `System` submenu, you should find the file path to your extensions folder. There's even a handy button to open the folder in explorer.
+
+![highlighting the extensions folder](/documentation/inst2.png)
 
 Simply copy the previously mentioned files into this folder and restart Inkscape.
 
