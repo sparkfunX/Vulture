@@ -306,7 +306,7 @@ def drawSVG(svg_attributes, attributes, paths):
         path = elPath(path.d())
 
         # Another stage of transforms that gets applied to all paths
-        # in order to shift the label around the origin
+        # in order to shift the image around the origin
 
         tx = {
             'l':0,
@@ -314,9 +314,9 @@ def drawSVG(svg_attributes, attributes, paths):
             'r':0-float(svgWidth)
         }
         ty = {
-            't':250,
-            'c':150,
-            'b':50
+            't':float(svgHeight),
+            'c':float(svgHeight)/2,
+            'b':0
         }
         path = elPath(paths[i].d()) * Matrix.translate(tx[args.originPos[1]],ty[args.originPos[0]])
         path = elPath(path.d())

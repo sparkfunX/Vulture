@@ -1,18 +1,35 @@
 # SparkFun Vulture SVG Import Tool
 
+![image showing input svg side-by-side with EAGLE output](/documentation/splash.png)
+
 The Vulture Tool is designed to process vector graphics files into device footprints for EAGLE or KiCAD. 
 
 ## Preparing Vector Graphics for Vulture
 
 Most vector graphics files are not compatible with Vulture "out-of-the-box" but they can be pre-processed quickly and easily. We 
 recommend using the free, open-source software [Inkscape](https://inkscape.org/) although any vector graphics editor should work
-fine. Below, we've outlined a basic protocol for pre-processing vector image files in Inkscape.
+fine. Below, we've outlined a basic protocol for pre-processing vector image files in Inkscape 1.0+
+
+You will also need an extension for Inkscape called "Apply Transforms" which can be found at [this githup repo](https://github.com/Klowner/inkscape-applytransforms)
+
+### Installing "Apply Transforms" Extension for Inkscape
+
+First you'll need to either clone the software repo or download it as a zip file. Inside the repo are two files called 
+"applytransform.inx" and "applytransform.py" which you simply copy and paste into your Inkscape user extensions folder. 
+
+To find your extensions folder, open Inkscape and access the `Preferences` menu (Shift+Ctrl+P)
+
+![opening the inkscape preferences menu](/documentation/ints1.png)
+
+And then, in the `System` submenu, you should find the file path to your extensions folder. There's even a handy button to open the folder in explorer.
+
+Simply copy the previously mentioned files into this folder and restart Inkscape.
 
 ### Step 1) Open your image file in Inkscape
 
-Open the InkScape software and then open your vector image
+Open the Inkscape software and then open your vector image
 
-![opening an image in inkscape](/documentation/pp1.PNG)
+![opening an image in inkscape](/documentation/step1.PNG)
 
 ### Step 2) Flatten and convert all shapes to paths
 
@@ -20,7 +37,7 @@ Vulture can only "see" paths, so we need to make sure that every shape in the do
 
 Select All objects (press Ctrl + A) and then run `Path>Object to Path` (press Shift+Ctrl+C)
 
-![highlighting object to path tool](/documentation/pp2.PNG)
+![highlighting object to path tool](/documentation/step2.PNG)
 
 You may need to repeat this a few times to catch all objects in the document. There's no harm in doing it 3 or 4 times just in case.
 
@@ -29,28 +46,38 @@ You may need to repeat this a few times to catch all objects in the document. Th
 Any paths that don't have a defined fill and/or stroke color will be ignored by the Vulture tool. In most cases, you'll want all paths 
 to be visible to Vulture. Start by selecting all paths again (Ctrl + A) and run `Object>Fill and Stroke` (Shift + Ctrl + F)
 
-![highlighting the fill and stroke tool](/documentation/pp3.PNG)
+![highlighting the fill and stroke tool](/documentation/step3a.PNG)
 
-![highlighting solid color fill option](/documentation/pp4.PNG)
+![highlighting solid color fill option](/documentation/step3b.PNG)
 
-![highlighting no paint stroke option](/documentation/pp5.PNG)
+![highlighting no paint stroke option](/documentation/step3c.PNG)
 
 ### Step 4) Set drawing units to real units (mm/cm/in)
 
 The Vulture tool is designed to import vector images at 1:1 scale. In order to do that, we require images to have absolute units such as cm/mm/inch. 
 Millimeters are the native unit for Vulture but inches and centimeters are converted. Open the Document Properties dialog (Shift + Ctrl + D) 
 
-![highlighting document properties option](/documentation/pp6.PNG)
+![highlighting document properties option](/documentation/step4a.PNG)
 
 Find the `Display Units` and `Units` fields and set them to your preferred units
 
-![highlighting units fields in document properties](/documentation/pp7.PNG)
+![highlighting units fields in document properties](/documentation/step4b.PNG)
 
-### Step 5) Save as a Plain .SVG file
+### Step 5) Apply Transforms
+
+Vulture gives the best results when the incoming vector file has flattened transforms, which is to say that all transforms are applied directly to the paths
+instead of being specified by `transform` tags in the file. Luckily for us, an extension exists to apply these transforms and it's called — 
+appropriately — Apply Transforms. 
+
+To run the extension, simply find it in the `Extensions>Modify Path` menu and click on it. It may take a moment to process.
+
+![running the apply transforms extension](/documentation/step5a.PNG)
+
+### Step 6) Save as a Plain .SVG file
 
 Save your pre-processed image file as "Plain SVG" format to ensure that all of the expected attribute tags are present.
 
-![highlighting Plain SVG in the Save As dialog](/documentation/pp8.PNG)
+![highlighting Plain SVG in the Save As dialog](/documentation/step6.PNG)
 
 Your file should now be ready to convert using Vulture.
 
