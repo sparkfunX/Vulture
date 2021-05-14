@@ -1,16 +1,12 @@
-#usage "en: <b>Create a polygon based label using SparkFun's Buzzard system."
-"<p>Usage: run makeLabel</p>"
+#usage "en: <b>Import an SVG to a polygon using SparkFun's Vulture tool."
+"<p>Usage: run vultureImport</p>"
     "<p>Author: <author>Nathan Seidle</author><br />"
     "Version: <em>1.0</em></p>"
 
     /*
-
-    run C:\Dropbox\Projects\Buzzard\makelabel.ulp C:/Dropbox/Projects/Buzzard/text.svg -s 300
-
-
 */
 
-    string commandToRun;
+string commandToRun;
 string s;
 
 //Change any / in a string to \
@@ -55,7 +51,7 @@ void createLabel()
     for (int x = 1; x < argc; x++)
         argList += argv[x] + " ";
 
-    sprintf(s, "python \"%sbuzzard.py\" -o lib %s", localDirectory, argList);
+    sprintf(s, "python \"%svulture.py\" -o lib %s", localDirectory, argList);
     commandToRun += " & " + s;
 
     //dlgMessageBox(commandToRun);
